@@ -1,0 +1,8 @@
+{
+  "name": "AI Prompt Orchestrator",
+  "description": "An advanced sequential intelligence chaining platform that deconstructs complex creative tasks into strategic analysis, copywriting, visual design, and quality review using the Gemini API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
