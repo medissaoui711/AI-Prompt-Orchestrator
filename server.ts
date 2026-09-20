@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 // Simulated AI Engine Fallback Function
 function getSimulatedResponse(nameKey: string, seedText: string, lang: string, formattingPreset?: string): string {
@@ -235,7 +235,14 @@ async function startServer() {
         return;
       }
 
-      const ai = new GoogleGenerativeAI(apiKey);
+      const ai = new GoogleGenAI({
+        apiKey: apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
 
       // Gather context from prior steps to construct an organic sequential chain
       let context = "";
@@ -437,22 +444,18 @@ Output the audit report directly.`;
 
       prompt += styleInstruction;
 
-      // Generate content with Gemini
-      const model = ai.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: systemInstruction,
-      }, { apiVersion: 'v1' });
-
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
+      // Generate content with Gemini using official @google/genai SDK
+      const response = await ai.models.generateContent({
+        model: "gemini-flash-latest",
+        contents: prompt,
+        config: {
+          systemInstruction: systemInstruction,
           temperature: 0.8,
           topP: 0.9,
         }
       });
 
-      const response = await result.response;
-      const outputText = response.text() || "No response received from the model.";
+      const outputText = response.text || "No response received from the model.";
       res.json({ output: outputText });
 
     } catch (err: unknown) {
@@ -537,7 +540,7 @@ Output the audit report directly.`;
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
